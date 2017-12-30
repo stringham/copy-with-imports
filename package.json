@@ -2,16 +2,21 @@
     "name": "copy-with-imports",
     "displayName": "Copy With Imports",
     "description": "Copy over symbol imports when copying and pasting between TypeScript files.",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "stringham",
     "engines": {
         "vscode": "^1.11.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/stringham/copy-with-imports"
     },
     "categories": [
         "Other"
     ],
     "activationEvents": [
         "onCommand:copy-with-imports.copy",
+        "onCommand:copy-with-imports.cut",
         "onCommand:copy-with-imports.paste"
     ],
     "keywords": [
@@ -26,6 +31,9 @@
             },{
                 "command": "copy-with-imports.paste",
                 "title": "Paste with imports"
+            },{
+                "command": "copy-with-imports.cut",
+                "title": "Cut with imports"
             }
         ],
         "keybindings": [
@@ -37,6 +45,11 @@
             {
                 "command": "copy-with-imports.paste",
                 "key": "ctrl+v",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "copy-with-imports.cut",
+                "key": "ctrl+x",
                 "when": "editorTextFocus"
             }
         ]

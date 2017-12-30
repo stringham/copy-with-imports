@@ -1,14 +1,20 @@
 ## Features
 
-When copying and pasting code between files, this extension will attempt to add new imports the file you are pasting into. (disclaimer: it may add more imports than you are expecting).
+When copying and pasting code between files, this extension will attempt to add new imports the file you are pasting into.
 
 ![demo](copy-with-imports.gif)
 
 ## Known Issues
 
+Does not add imports to existing import statements.
 
 ## Release Notes
 
+### 0.0.2
+
+Added the ability to work with cut.
+
+Combine new imports from the same module into one statement.
 ### 0.0.1
 
 Initial release of Copy With Imports
