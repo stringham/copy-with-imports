@@ -221,28 +221,29 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
         });
 
         editor.edit(builder => {
-            builder.insert(new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0), importStatements.join('\n'));
+            builder.insert(new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0), importStatements.join('\n') + '\n');
         }, {undoStopBefore: true, undoStopAfter: true});
     }
 }
 
 export function activate(context: vscode.ExtensionContext) {
     let lastSave = {
-        text: '',
+        text: [''],
         location: '',
     };
 
     function saveLastCopy(e: vscode.TextEditor) {
         const doc = e.document;
-        const selection = e.selection;
-        let text = doc.getText(new vscode.Range(selection.start, selection.end));
 
-        if (text.length == 0) {
-            // copying the whole line.
-            text = doc.lineAt(selection.start.line).text + '\n';
-        }
+        lastSave.text = e.selections.map(selection => {
+            let text = doc.getText(new vscode.Range(selection.start, selection.end));
+            if (text.length == 0) {
+                // copying the whole line.
+                text = doc.lineAt(selection.start.line).text + '\n';
+            }
+            return text;
+        });
 
-        lastSave.text = text;
         lastSave.location = doc.fileName;
     }
 
@@ -260,19 +261,37 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.commands.registerTextEditorCommand('copy-with-imports.paste', (editor, edit) => {
         let doc = vscode.window.activeTextEditor.document;
-        let selection = vscode.window.activeTextEditor.selection;
+        let selections = vscode.window.activeTextEditor.selections.slice().sort((a,b) => a.start.compareTo(b.start));
 
         vscode.commands.executeCommand('editor.action.clipboardPasteAction').then(() => {
             if (lastSave.location && vscode.window.activeTextEditor.document.fileName != lastSave.location) {
-                let pasted =
-                    doc.getText(new vscode.Range(selection.start, vscode.window.activeTextEditor.selection.start));
-                // replace whitespace in case of auto formatter.
-                if (pasted.replace(/\s/g, '') == lastSave.text.replace(/\s/g, '')) {
-                    bringInImports(lastSave.location, vscode.window.activeTextEditor, pasted, edit)
+                let shouldBringImports = false;
+                if(selections.length == 1 || selections.length != lastSave.text.length) {
+                    let selection = selections[0];
+                    let pasted =
+                        doc.getText(new vscode.Range(selection.start, vscode.window.activeTextEditor.selection.start));
+                    // replace whitespace in case of auto formatter.
+                    if (pasted.replace(/\s/g, '') == lastSave.text.join('').replace(/\s/g, '')) {
+                        shouldBringImports = true;
+                    }
+                } else {
+                    let copied = new Set<string>(lastSave.text.map(text => text.replace(/\s/g,'')));
+                    let currentSelections = vscode.window.activeTextEditor.selections.slice().sort((a,b) => a.start.compareTo(b.start));
+                    shouldBringImports = true;
+                    for(let i=0; i<selections.length; i++) {
+                        let pasted =
+                        doc.getText(new vscode.Range(selections[i].start, currentSelections[i].start));
+                        if(!copied.has(pasted.replace(/\s/g,''))) {
+                            shouldBringImports = false;
+                            break;
+                        }
+                    }
+                }
+                if(shouldBringImports) {
+                    bringInImports(lastSave.location, vscode.window.activeTextEditor, lastSave.text.join('\n'), edit);
                 }
             }
         });
-
     }))
 }
 
