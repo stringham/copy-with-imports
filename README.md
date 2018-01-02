@@ -10,6 +10,10 @@ Does not add imports to existing import statements.
 
 ## Release Notes
 
+### 0.0.4
+
+Auto import exported names from the file you copied from.
+
 ### 0.0.3
 
 Add a newline after the last inserted import statement.

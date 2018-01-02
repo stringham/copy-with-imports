@@ -50,6 +50,28 @@ function getImports(src: string, filePath: string) {
                 }
             }
         }
+
+        if(node.kind == ts.SyntaxKind.ExportKeyword) {
+            const parent = node.parent;
+
+            if(parent) {
+                if(parent.kind == ts.SyntaxKind.ClassDeclaration) {
+                    let cd = parent as ts.ClassDeclaration;
+                    if(cd.name) {
+                        importNames[cd.name.getText()] = {
+                            path: filePath,
+                        }
+                    }
+                } else if(parent.kind == ts.SyntaxKind.VariableStatement) {
+                    let vs = parent as ts.VariableStatement;
+                    vs.declarationList.declarations.forEach(declaration => {
+                        importNames[declaration.name.getText()] = {
+                            path: filePath,
+                        }
+                    });
+                }
+            }
+        }
     });
     return importNames;
 }
