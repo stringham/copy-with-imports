@@ -10,6 +10,10 @@ Does not add imports to existing import statements.
 
 ## Release Notes
 
+### 0.0.5
+
+Add support for exported interfaces, enums, type aliases, and modules
+
 ### 0.0.4
 
 Auto import exported names from the file you copied from.

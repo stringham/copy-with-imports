@@ -60,15 +60,35 @@ function getImports(src: string, filePath: string) {
                     if(cd.name) {
                         importNames[cd.name.getText()] = {
                             path: filePath,
-                        }
+                        };
                     }
                 } else if(parent.kind == ts.SyntaxKind.VariableStatement) {
                     let vs = parent as ts.VariableStatement;
                     vs.declarationList.declarations.forEach(declaration => {
                         importNames[declaration.name.getText()] = {
                             path: filePath,
-                        }
+                        };
                     });
+                } else if(parent.kind == ts.SyntaxKind.InterfaceDeclaration) {
+                    let id = parent as ts.InterfaceDeclaration;
+                    importNames[id.name.getText()] = {
+                        path: filePath,
+                    };
+                } else if(parent.kind == ts.SyntaxKind.EnumDeclaration) {
+                    let ed = parent as ts.EnumDeclaration;
+                    importNames[ed.name.getText()] = {
+                        path: filePath,
+                    };
+                } else if(parent.kind == ts.SyntaxKind.TypeAliasDeclaration) {
+                    let tad = parent as ts.TypeAliasDeclaration;
+                    importNames[tad.name.getText()] = {
+                        path: filePath,
+                    };
+                } else if(parent.kind == ts.SyntaxKind.ModuleDeclaration) {
+                    let md = parent as ts.ModuleDeclaration;
+                    importNames[md.name.getText()] = {
+                        path: filePath,
+                    };
                 }
             }
         }
