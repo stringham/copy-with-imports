@@ -10,6 +10,10 @@ Does not add imports to existing import statements.
 
 ## Release Notes
 
+### 0.0.7
+
+Add default key bindings for mac
+
 ### 0.0.5
 
 Add support for exported interfaces, enums, type aliases, and modules
