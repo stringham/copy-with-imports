@@ -10,6 +10,14 @@ Does not add imports to existing import statements.
 
 ## Release Notes
 
+### 0.0.9
+
+Fix bug with finding the position of the end of the last import.
+
+### 0.0.8
+
+Add extension icon
+
 ### 0.0.7
 
 Add default key bindings for mac

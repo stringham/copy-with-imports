@@ -7,6 +7,8 @@ import {walk} from './walk';
 
 interface ImportOptions {
     path: string;
+    isImport: boolean;
+    end: number;
     namespace?: boolean;
     defaultImport?: boolean;
     originalName?: string;
@@ -27,7 +29,12 @@ function getImports(src: string, filePath: string) {
 
             if (i.importClause) {
                 if (i.importClause.name) {
-                    importNames[i.importClause.name.getText()] = {path: resolved, defaultImport: true};
+                    importNames[i.importClause.name.getText()] = {
+                        path: resolved,
+                        defaultImport: true,
+                        isImport: true,
+                        end: i.getEnd(),
+                    };
                 }
                 if (i.importClause.namedBindings) {
                     let bindings = i.importClause.namedBindings;
@@ -37,12 +44,16 @@ function getImports(src: string, filePath: string) {
                             importNames[a.name.getText()] = {
                                 path: resolved,
                                 originalName: a.propertyName ? a.propertyName.getText() : undefined,
+                                isImport: true,
+                                end: i.getEnd(),
                             };
                         });
                     } else if (bindings.kind == ts.SyntaxKind.NamespaceImport) {
                         importNames[(bindings as ts.NamespaceImport).name.getText()] = {
                             path: resolved,
-                            namespace: true
+                            namespace: true,
+                            isImport: true,
+                            end: i.getEnd(),
                         };
                     } else {
                         console.log('unexpected..');
@@ -60,6 +71,8 @@ function getImports(src: string, filePath: string) {
                     if(cd.name) {
                         importNames[cd.name.getText()] = {
                             path: filePath,
+                            isImport: false,
+                            end: -1,
                         };
                     }
                 } else if(parent.kind == ts.SyntaxKind.VariableStatement) {
@@ -67,27 +80,37 @@ function getImports(src: string, filePath: string) {
                     vs.declarationList.declarations.forEach(declaration => {
                         importNames[declaration.name.getText()] = {
                             path: filePath,
+                            isImport: false,
+                            end: -1,
                         };
                     });
                 } else if(parent.kind == ts.SyntaxKind.InterfaceDeclaration) {
                     let id = parent as ts.InterfaceDeclaration;
                     importNames[id.name.getText()] = {
                         path: filePath,
+                        isImport: false,
+                        end: -1,
                     };
                 } else if(parent.kind == ts.SyntaxKind.EnumDeclaration) {
                     let ed = parent as ts.EnumDeclaration;
                     importNames[ed.name.getText()] = {
                         path: filePath,
+                        isImport: false,
+                        end: -1,
                     };
                 } else if(parent.kind == ts.SyntaxKind.TypeAliasDeclaration) {
                     let tad = parent as ts.TypeAliasDeclaration;
                     importNames[tad.name.getText()] = {
                         path: filePath,
+                        isImport: false,
+                        end: -1,
                     };
                 } else if(parent.kind == ts.SyntaxKind.ModuleDeclaration) {
                     let md = parent as ts.ModuleDeclaration;
                     importNames[md.name.getText()] = {
                         path: filePath,
+                        isImport: false,
+                        end: -1,
                     };
                 }
             }
@@ -234,16 +257,15 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
     }
 
     if (importsToAdd.length > 0) {
-        console.log('need to add imports...');
-        var importRegExp = /\bimport\s+(?:({?)\s*(.+?)\s*}?\s+from\s+)?[\'"]([^"\']+)["\']\s*;?/g;
-        var lastImport: vscode.Position = null;
-        var matches: string[];
-        var lastImport: vscode.Position = null;
+        let lastImport: vscode.Position = null;
+        let lastImportPos = 0;
 
-        let edit: vscode.WorkspaceEdit;
-
-        while (matches = importRegExp.exec(destinationFileText)) {
-            lastImport = editor.document.positionAt(destinationFileText.indexOf(matches[0]));
+        for(let importName in destinationFileImports) {
+            let info = destinationFileImports[importName];
+            if(info.isImport && info.end > lastImportPos) {
+                lastImportPos = info.end;
+                lastImport = editor.document.positionAt(info.end);
+            }
         }
 
         let importStatements = [];
