@@ -10,6 +10,10 @@ Does not add imports to existing import statements.
 
 ## Release Notes
 
+### 0.0.10
+
+Added support for exported functions.
+
 ### 0.0.9
 
 Fix bug with finding the position of the end of the last import.

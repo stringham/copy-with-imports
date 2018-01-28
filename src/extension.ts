@@ -9,6 +9,8 @@ interface ImportOptions {
     path: string;
     isImport: boolean;
     end: number;
+    node: ts.Node;
+    moduleSpecifier?: string;
     namespace?: boolean;
     defaultImport?: boolean;
     originalName?: string;
@@ -34,6 +36,7 @@ function getImports(src: string, filePath: string) {
                         defaultImport: true,
                         isImport: true,
                         end: i.getEnd(),
+                        node: i,
                     };
                 }
                 if (i.importClause.namedBindings) {
@@ -44,8 +47,10 @@ function getImports(src: string, filePath: string) {
                             importNames[a.name.getText()] = {
                                 path: resolved,
                                 originalName: a.propertyName ? a.propertyName.getText() : undefined,
+                                moduleSpecifier: (i.moduleSpecifier as ts.StringLiteral).text,
                                 isImport: true,
                                 end: i.getEnd(),
+                                node: i,
                             };
                         });
                     } else if (bindings.kind == ts.SyntaxKind.NamespaceImport) {
@@ -54,6 +59,7 @@ function getImports(src: string, filePath: string) {
                             namespace: true,
                             isImport: true,
                             end: i.getEnd(),
+                            node: i,
                         };
                     } else {
                         console.log('unexpected..');
@@ -73,6 +79,7 @@ function getImports(src: string, filePath: string) {
                             path: filePath,
                             isImport: false,
                             end: -1,
+                            node: cd,
                         };
                     }
                 } else if(parent.kind == ts.SyntaxKind.VariableStatement) {
@@ -82,6 +89,7 @@ function getImports(src: string, filePath: string) {
                             path: filePath,
                             isImport: false,
                             end: -1,
+                            node: vs,
                         };
                     });
                 } else if(parent.kind == ts.SyntaxKind.InterfaceDeclaration) {
@@ -90,6 +98,7 @@ function getImports(src: string, filePath: string) {
                         path: filePath,
                         isImport: false,
                         end: -1,
+                        node: id,
                     };
                 } else if(parent.kind == ts.SyntaxKind.EnumDeclaration) {
                     let ed = parent as ts.EnumDeclaration;
@@ -97,6 +106,7 @@ function getImports(src: string, filePath: string) {
                         path: filePath,
                         isImport: false,
                         end: -1,
+                        node: ed,
                     };
                 } else if(parent.kind == ts.SyntaxKind.TypeAliasDeclaration) {
                     let tad = parent as ts.TypeAliasDeclaration;
@@ -104,6 +114,7 @@ function getImports(src: string, filePath: string) {
                         path: filePath,
                         isImport: false,
                         end: -1,
+                        node: tad,
                     };
                 } else if(parent.kind == ts.SyntaxKind.ModuleDeclaration) {
                     let md = parent as ts.ModuleDeclaration;
@@ -111,6 +122,15 @@ function getImports(src: string, filePath: string) {
                         path: filePath,
                         isImport: false,
                         end: -1,
+                        node: md,
+                    };
+                } else if(parent.kind == ts.SyntaxKind.FunctionDeclaration) {
+                    let fd = parent as ts.FunctionDeclaration;
+                    importNames[fd.name.getText()] = {
+                        path: filePath,
+                        isImport: false,
+                        end: -1,
+                        node: fd,
                     };
                 }
             }
