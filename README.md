@@ -6,9 +6,11 @@ When copying and pasting code between files, this extension will attempt to add 
 
 ## Known Issues
 
-Does not add imports to existing import statements.
-
 ## Release Notes
+
+### 0.0.11
+
+Add imports to exisitng import statements if possible.
 
 ### 0.0.10
 

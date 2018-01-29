@@ -249,6 +249,26 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
         }
     });
 
+    const destinationNameSpaceImports = new Map<string, {names: string[], option: ImportOptions}>();
+    for(let importName in destinationFileImports) {
+        let option = destinationFileImports[importName];
+        if(option.isImport && !(option.defaultImport || option.namespace) && option.moduleSpecifier) {
+            if(!destinationNameSpaceImports.has(option.moduleSpecifier)) {
+                destinationNameSpaceImports.set(option.moduleSpecifier, {names:[], option:option});
+            }
+            let name = importName;
+            if(option.originalName) {
+                name = option.originalName + ' as ' + importName;
+            }
+            let existing = destinationNameSpaceImports.get(option.moduleSpecifier);
+            if(option.end > existing.option.end) {
+                existing.names = [];
+                existing.option = option;
+            }
+            existing.names.push(name);
+        }
+    }
+
 
     for (let importName in srcFileImports) {
         if (destinationFileImports.hasOwnProperty(importName)) {
@@ -290,22 +310,45 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
 
         let importStatements = [];
 
+        let replacements:{range:vscode.Range, value:string}[] = [];
+
         importsToAdd.forEach(i => {
             let statement = 'import ';
+            let specifier = removeExtension(getRelativePath(editor.document.fileName, i.options.path));
             if (i.options.namespace) {
                 statement += '* as ' + i.names[0];
             } else if (i.options.defaultImport) {
                 statement += i.names[0];
             } else {
-                statement += '{' + i.names.join(', ') + '}';
+                if(destinationNameSpaceImports.has(specifier)) {
+                    // add to existing imports
+                    const existing = destinationNameSpaceImports.get(specifier);
+                    const allNames = existing.names.concat(i.names);
+                    let range = new vscode.Range(
+                        editor.document.positionAt(existing.option.node.getStart()),
+                        editor.document.positionAt(existing.option.node.getEnd())
+                    )
+                    replacements.push({
+                        range: range,
+                        value: `import {${allNames.join(', ')}} from '${specifier}';`,
+                    });
+                    return;
+                } else {
+                    statement += '{' + i.names.join(', ') + '}';
+                }
             }
 
-            statement += ' from \'' + removeExtension(getRelativePath(editor.document.fileName, i.options.path)) + '\';'
+            statement += ' from \'' + specifier + '\';'
             importStatements.push(statement);
         });
 
         editor.edit(builder => {
-            builder.insert(new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0), importStatements.join('\n') + '\n');
+            if(importStatements.length > 0) {
+                builder.insert(new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0), importStatements.join('\n') + '\n');
+            }
+            replacements.forEach(r => {
+                builder.replace(r.range, r.value);
+            });
         }, {undoStopBefore: true, undoStopAfter: true});
     }
 }
