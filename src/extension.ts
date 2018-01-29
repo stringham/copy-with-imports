@@ -198,6 +198,10 @@ function removeExtension(filePath: string): string {
     return filePath;
 }
 
+function getExtensionConfig<T>(property: string, defaultValue: T) {
+    return vscode.workspace.getConfiguration('copy-with-imports').get<T>(property, defaultValue);
+}
+
 function getRelativePath(fromPath: string, specifier: string): string {
     const config = getTsConfig(fromPath);
     if (config && config.config && config.config.compilerOptions && config.config.compilerOptions.paths) {
@@ -210,6 +214,9 @@ function getRelativePath(fromPath: string, specifier: string): string {
                 }
             }
         }
+    }
+    if(config && config.config && isInDir(path.dirname(config.path), specifier) && getExtensionConfig('path-relative-from-tsconfig', false)) {
+        return path.relative(path.dirname(config.path), specifier);
     }
 
     if (!specifier.startsWith('/')) {

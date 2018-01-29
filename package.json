@@ -2,7 +2,7 @@
     "name": "copy-with-imports",
     "displayName": "Copy With Imports",
     "description": "Copy over symbol imports when copying and pasting between TypeScript files.",
-    "version": "0.0.11",
+    "version": "0.1.0",
     "publisher": "stringham",
     "engines": {
         "vscode": "^1.11.0"
@@ -43,6 +43,17 @@
                 "title": "Cut with imports"
             }
         ],
+        "configuration": {
+            "type": "object",
+            "title": "Copy With Imports configuration",
+            "properties": {
+                "copy-with-imports.path-relative-from-tsconfig": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "When resolving relative paths, use classic module resolution from the tsconfig. This makes the import relative from the tsconfig.json"
+                }
+            }
+        },
         "keybindings": [
             {
                 "command": "copy-with-imports.copy",

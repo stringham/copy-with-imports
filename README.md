@@ -8,6 +8,12 @@ When copying and pasting code between files, this extension will attempt to add 
 
 ## Release Notes
 
+### 0.1.0
+
+Added the ability to use classic module resolution for relative imports. This will create new import statements relative to the project's tsconfig.json.
+
+To enable, update your user preferences to have: `"copy-with-imports.path-relative-from-tsconfig": true`
+
 ### 0.0.11
 
 Add imports to exisitng import statements if possible.
