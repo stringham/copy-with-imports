@@ -8,6 +8,10 @@ When copying and pasting code between files, this extension will attempt to add 
 
 ## Release Notes
 
+### 0.1.1
+
+Fix relative paths in Windows.
+
 ### 0.1.0
 
 Added the ability to use classic module resolution for relative imports. This will create new import statements relative to the project's tsconfig.json.
