@@ -219,7 +219,7 @@ function getRelativePath(fromPath: string, specifier: string): string {
         return path.relative(path.dirname(config.path), specifier);
     }
 
-    if (!specifier.startsWith('/')) {
+    if (!path.isAbsolute(specifier)) {
         return specifier;
     }
 
