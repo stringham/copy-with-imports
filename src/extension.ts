@@ -188,11 +188,11 @@ function isInDir(dir: string, p: string) {
 
 function removeExtension(filePath: string): string {
     let ext = path.extname(filePath);
-    let extensions = ['.ts', '.tsx'];
+    let extensions = new Set([...tsExtensions, ...jsExtensions]);
     if (ext == '.ts' && filePath.endsWith('.d.ts')) {
         ext = '.d.ts';
     }
-    if (extensions.indexOf(ext) >= 0) {
+    if (extensions.has(ext)) {
         return filePath.slice(0, -ext.length);
     }
     return filePath;
@@ -203,20 +203,22 @@ function getExtensionConfig<T>(property: string, defaultValue: T) {
 }
 
 function getRelativePath(fromPath: string, specifier: string): string {
-    const config = getTsConfig(fromPath);
-    if (config && config.config && config.config.compilerOptions && config.config.compilerOptions.paths) {
-        for (let p in config.config.compilerOptions.paths) {
-            if (config.config.compilerOptions.paths[p].length == 1) {
-                let mapped = config.config.compilerOptions.paths[p][0].replace('*', '');
-                let mappedDir = path.resolve(path.dirname(config.path), mapped);
-                if (isInDir(mappedDir, specifier)) {
-                    return p.replace('*', '') + path.relative(mappedDir, specifier);
+    if(tsExtensions.has(path.extname(fromPath))) {
+        const config = getTsConfig(fromPath);
+        if (config && config.config && config.config.compilerOptions && config.config.compilerOptions.paths) {
+            for (let p in config.config.compilerOptions.paths) {
+                if (config.config.compilerOptions.paths[p].length == 1) {
+                    let mapped = config.config.compilerOptions.paths[p][0].replace('*', '');
+                    let mappedDir = path.resolve(path.dirname(config.path), mapped);
+                    if (isInDir(mappedDir, specifier)) {
+                        return p.replace('*', '') + path.relative(mappedDir, specifier);
+                    }
                 }
             }
         }
-    }
-    if(config && config.config && isInDir(path.dirname(config.path), specifier) && getExtensionConfig('path-relative-from-tsconfig', false)) {
-        return path.relative(path.dirname(config.path), specifier);
+        if(config && config.config && isInDir(path.dirname(config.path), specifier) && getExtensionConfig('path-relative-from-tsconfig', false)) {
+            return path.relative(path.dirname(config.path), specifier);
+        }
     }
 
     if (!path.isAbsolute(specifier)) {
@@ -231,13 +233,18 @@ function getRelativePath(fromPath: string, specifier: string): string {
     return relative;
 }
 
+const tsExtensions = new Set(['.ts', '.tsx']);
+const jsExtensions = new Set(['.js', '.jsx']);
+
 function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: string, edit: vscode.TextEditorEdit) {
-    if (!sourceFile.endsWith('.ts') && !sourceFile.endsWith('.tsx')) {
+    let sourceExt = path.extname(sourceFile);
+    let destExt = path.extname(editor.document.fileName);
+    let bothTs = tsExtensions.has(sourceExt) && tsExtensions.has(destExt);
+    let bothJs = jsExtensions.has(sourceExt) && jsExtensions.has(destExt);
+    if (!bothTs && !bothJs) {
         return;
     }
-    if (!editor.document.fileName.endsWith('.ts') && !editor.document.fileName.endsWith('.tsx')) {
-        return;
-    }
+
 
     let srcFileText = fs.readFileSync(sourceFile, 'utf8').toString();
     const srcFileImports = getImports(srcFileText, sourceFile);

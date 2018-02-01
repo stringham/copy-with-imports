@@ -8,6 +8,10 @@ When copying and pasting code between files, this extension will attempt to add 
 
 ## Release Notes
 
+### 0.1.2
+
+Support es6 style imports when copying and pasting between JavaScript files
+
 ### 0.1.1
 
 Fix relative paths in Windows.
