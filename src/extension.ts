@@ -326,6 +326,12 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
 
         let replacements:{range:vscode.Range, value:string}[] = [];
 
+        let spacesBetweenBraces = getExtensionConfig('space-between-braces', false);
+        let doubleQuotes = getExtensionConfig('double-quotes', false);
+
+        let optSpace = spacesBetweenBraces ? ' ' : '';
+        let quote = doubleQuotes ? '"' : "'";
+
         importsToAdd.forEach(i => {
             let statement = 'import ';
             let specifier = removeExtension(getRelativePath(editor.document.fileName, i.options.path));
@@ -344,15 +350,15 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
                     )
                     replacements.push({
                         range: range,
-                        value: `import {${allNames.join(', ')}} from '${specifier}';`,
+                        value: `import {${optSpace}${allNames.join(', ')}${optSpace}} from ${quote}${specifier}${quote};`,
                     });
                     return;
                 } else {
-                    statement += '{' + i.names.join(', ') + '}';
+                    statement += `{${optSpace}${i.names.join(', ')}${optSpace}}`;
                 }
             }
 
-            statement += ' from \'' + specifier + '\';'
+            statement += ` from ${quote}${specifier}${quote};`
             importStatements.push(statement);
         });
 

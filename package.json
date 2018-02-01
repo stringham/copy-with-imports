@@ -2,7 +2,7 @@
     "name": "copy-with-imports",
     "displayName": "Copy With Imports",
     "description": "Copy over symbol imports when copying and pasting between TypeScript files.",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "publisher": "stringham",
     "engines": {
         "vscode": "^1.11.0"
@@ -51,6 +51,16 @@
                     "type": "boolean",
                     "default": false,
                     "description": "When resolving relative paths, use classic module resolution from the tsconfig. This makes the import relative from the tsconfig.json"
+                },
+                "copy-with-imports.space-between-braces": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Add spaces between the braces in generated import statements"
+                },
+                "copy-with-imports.double-quotes": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use double quotes instead of single quotes for the module specifier string"
                 }
             }
         },
