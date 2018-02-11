@@ -8,6 +8,10 @@ When copying and pasting code between files, this extension will attempt to add 
 
 ## Release Notes
 
+### 0.1.5
+
+Fix for projects that don't have a tsconfig.json.
+
 ### 0.1.3
 
 Add formatting preferences: `copy-with-imports.space-between-braces` and `copy-with-imports.double-quotes`. Defaults to false but can be set in user settings.

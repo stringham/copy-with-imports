@@ -133,7 +133,7 @@ export function resolveImport(importSpecifier: string, filePath: string, config:
     if (importSpecifier.startsWith('.')) {
         return path.resolve(path.dirname(filePath), importSpecifier) + '.ts';
     }
-    if (config.config.compilerOptions && config.config.compilerOptions.paths) {
+    if (config && config.config.compilerOptions && config.config.compilerOptions.paths) {
         for (let p in config.config.compilerOptions.paths) {
             if (p.endsWith('*') && importSpecifier.startsWith(p.replace('*', ''))) {
                 if (config.config.compilerOptions.paths[p].length == 1) {
