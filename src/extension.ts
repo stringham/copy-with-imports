@@ -168,14 +168,18 @@ export function activate(context: vscode.ExtensionContext) {
     }
 
     context.subscriptions
-        .push(vscode.commands.registerTextEditorCommand('copy-with-imports.copy', (editor: vscode.TextEditor, edit) => {
+        .push(vscode.commands.registerCommand('copy-with-imports.copy', () => {
             vscode.commands.executeCommand('editor.action.clipboardCopyAction');
-            saveLastCopy(vscode.window.activeTextEditor);
+            if(vscode.window.activeTextEditor) {
+                saveLastCopy(vscode.window.activeTextEditor);
+            }
         }));
 
     context.subscriptions
-        .push(vscode.commands.registerTextEditorCommand('copy-with-imports.cut', (editor: vscode.TextEditor, edit) => {
-            saveLastCopy(vscode.window.activeTextEditor);
+        .push(vscode.commands.registerCommand('copy-with-imports.cut', () => {
+            if(vscode.window.activeTextEditor) {
+                saveLastCopy(vscode.window.activeTextEditor);
+            }
             vscode.commands.executeCommand('editor.action.clipboardCutAction');
         }));
 
