@@ -32,11 +32,18 @@ export function getRelativePath(fromPath: string, specifier: string): string {
         const config = getTsConfig(fromPath);
         if (config && config.config && config.config.compilerOptions && config.config.compilerOptions.paths) {
             for (let p in config.config.compilerOptions.paths) {
-                if (config.config.compilerOptions.paths[p].length == 1) {
-                    let mapped = config.config.compilerOptions.paths[p][0].replace('*', '');
-                    let mappedDir = path.resolve(path.dirname(config.path), mapped);
+                if (p.indexOf('*') !== -1) {
+                    const mapped = config.config.compilerOptions.paths[p][0].replace('*', '');
+                    const mappedDir = path.resolve(path.dirname(config.path), mapped);
                     if (isInDir(mappedDir, specifier)) {
                         return p.replace('*', '') + path.relative(mappedDir, specifier);
+                    }
+                } else {
+                    const mapped = config.config.compilerOptions.paths[p][0];
+                    const mappedDir = path.resolve(path.dirname(config.path), mapped);
+
+                    if (mappedDir === specifier) {
+                        return p;
                     }
                 }
             }
