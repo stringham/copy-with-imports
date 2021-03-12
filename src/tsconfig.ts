@@ -4,7 +4,8 @@ import * as ts from 'typescript';
 
 export function getTsConfig(filePath: string) {
     let dir = path.dirname(filePath);
-    while (dir != filePath) {
+    let lastDir = filePath;
+    while (dir != lastDir) {
         const tsConfigPaths = [dir + '/tsconfig.build.json', dir + '/tsconfig.json'];
         const tsConfigPath = tsConfigPaths.find(p => fs.existsSync(p));
         if (tsConfigPath) {
@@ -12,6 +13,7 @@ export function getTsConfig(filePath: string) {
             config.path = tsConfigPath;
             return config;
         }
+        lastDir = dir;
         dir = path.dirname(dir);
     }
     return false;
