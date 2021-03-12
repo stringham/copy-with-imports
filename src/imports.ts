@@ -20,7 +20,7 @@ export function getImports(src: string, filePath: string) {
 
     let importNames: {[key: string]: ImportOptions} = {};
     const config = getTsConfig(filePath);
-    walk(file, (node) => {
+    for (const node of file.statements) {
         if (ts.isImportDeclaration(node)) {
             if (ts.isStringLiteral(node.moduleSpecifier)) {
                 let specifier = node.moduleSpecifier.text;
@@ -39,7 +39,7 @@ export function getImports(src: string, filePath: string) {
                     if (node.importClause.namedBindings) {
                         let bindings = node.importClause.namedBindings;
                         if (ts.isNamedImports(bindings)) {
-                            bindings.elements.forEach(a => {
+                            bindings.elements.forEach((a) => {
                                 importNames[a.name.getText()] = {
                                     path: resolved,
                                     originalName: a.propertyName ? a.propertyName.getText() : undefined,
@@ -64,68 +64,66 @@ export function getImports(src: string, filePath: string) {
                 }
             }
         }
-
-        if (node.kind == ts.SyntaxKind.ExportKeyword) {
-            const parent = node.parent;
-
-            if (parent) {
-                if (ts.isClassDeclaration(parent)) {
-                    if (parent.name) {
-                        importNames[parent.name.getText()] = {
-                            path: filePath,
-                            isImport: false,
-                            end: -1,
-                            node: parent,
-                        };
-                    }
-                } else if (ts.isVariableStatement(parent)) {
-                    parent.declarationList.declarations.forEach(declaration => {
-                        importNames[declaration.name.getText()] = {
-                            path: filePath,
-                            isImport: false,
-                            end: -1,
-                            node: parent,
-                        };
-                    });
-                } else if (ts.isInterfaceDeclaration(parent)) {
-                    importNames[parent.name.getText()] = {
+        const modifier = node.modifiers?.[0];
+        if (modifier?.kind == ts.SyntaxKind.ExportKeyword) {
+            if (ts.isClassDeclaration(node)) {
+                if (node.name) {
+                    importNames[node.name.getText()] = {
                         path: filePath,
                         isImport: false,
                         end: -1,
-                        node: parent,
+                        node: node,
                     };
-                } else if (ts.isEnumDeclaration(parent)) {
-                    importNames[parent.name.getText()] = {
+                }
+            } else if (ts.isVariableStatement(node)) {
+                node.declarationList.declarations.forEach((declaration) => {
+                    importNames[declaration.name.getText()] = {
                         path: filePath,
                         isImport: false,
                         end: -1,
-                        node: parent,
+                        node: node,
                     };
-                } else if (ts.isTypeAliasDeclaration(parent)) {
-                    importNames[parent.name.getText()] = {
+                });
+            } else if (ts.isInterfaceDeclaration(node)) {
+                importNames[node.name.getText()] = {
+                    path: filePath,
+                    isImport: false,
+                    end: -1,
+                    node: node,
+                };
+            } else if (ts.isEnumDeclaration(node)) {
+                importNames[node.name.getText()] = {
+                    path: filePath,
+                    isImport: false,
+                    end: -1,
+                    node: node,
+                };
+            } else if (ts.isTypeAliasDeclaration(node)) {
+                importNames[node.name.getText()] = {
+                    path: filePath,
+                    isImport: false,
+                    end: -1,
+                    node: node,
+                };
+            } else if (ts.isModuleDeclaration(node)) {
+                importNames[node.name.getText()] = {
+                    path: filePath,
+                    isImport: false,
+                    end: -1,
+                    node: node,
+                };
+            } else if (ts.isFunctionDeclaration(node)) {
+                if (node.name) {
+                    importNames[node.name.getText()] = {
                         path: filePath,
                         isImport: false,
                         end: -1,
-                        node: parent,
-                    };
-                } else if (ts.isModuleDeclaration(parent)) {
-                    importNames[parent.name.getText()] = {
-                        path: filePath,
-                        isImport: false,
-                        end: -1,
-                        node: parent,
-                    };
-                } else if (ts.isFunctionDeclaration(parent)) {
-                    importNames[parent.name.getText()] = {
-                        path: filePath,
-                        isImport: false,
-                        end: -1,
-                        node: parent,
+                        node: node,
                     };
                 }
             }
         }
-    });
+    }
     return importNames;
 }
 
