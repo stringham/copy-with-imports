@@ -2,7 +2,7 @@
     "name": "copy-with-imports",
     "displayName": "Copy With Imports",
     "description": "Copy over symbol imports when copying and pasting between TypeScript files.",
-    "version": "0.1.7",
+    "version": "0.2.0",
     "publisher": "stringham",
     "engines": {
         "vscode": "^1.11.0"
