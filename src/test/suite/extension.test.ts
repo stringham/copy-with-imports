@@ -24,6 +24,8 @@ import * as namespaceImport from './namespace';
 import defaultImport from './defaultImport';
 import nonRelative from '@this/is/not/relative';
 
+
+export {ReExport} from 'otherfile';
 export class MyClass {}
 
 export const myConst = 4;
@@ -49,6 +51,7 @@ export namespace myModule {}
             myEnum: '/this/is/a/file.ts',
             myFunction: '/this/is/a/file.ts',
             myModule: '/this/is/a/file.ts',
+            ReExport: '/this/is/a/file.ts',
             myInterface: '/this/is/a/file.ts',
             myLet: '/this/is/a/file.ts',
             myType: '/this/is/a/file.ts',

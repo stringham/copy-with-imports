@@ -64,6 +64,20 @@ export function getImports(src: string, filePath: string) {
                 }
             }
         }
+
+        if (ts.isExportDeclaration(node)) {
+            if (node.exportClause && ts.isNamedExports(node.exportClause)) {
+                for (const exportSpecifier of node.exportClause.elements) {
+                    importNames[exportSpecifier.name.getText()] = {
+                        path: filePath,
+                        isImport: false,
+                        end: -1,
+                        node: exportSpecifier.name,
+                    };
+                }
+            }
+        }
+
         const modifier = node.modifiers?.[0];
         if (modifier?.kind == ts.SyntaxKind.ExportKeyword) {
             if (ts.isClassDeclaration(node)) {
