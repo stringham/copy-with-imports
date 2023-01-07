@@ -27,6 +27,10 @@ export function removeExtension(filePath: string): string {
     return filePath;
 }
 
+function convertPathSeperators(relative: string) {
+    return relative.replace(/\\/g, '/');
+}
+
 export function getRelativePath(fromPath: string, specifier: string): string {
     if (tsExtensions.has(path.extname(fromPath))) {
         const config = getTsConfig(fromPath);
@@ -36,25 +40,28 @@ export function getRelativePath(fromPath: string, specifier: string): string {
                     let mapped = config.config.compilerOptions.paths[p][0].replace('*', '');
                     let mappedDir = path.resolve(path.dirname(config.path), mapped);
                     if (isInDir(mappedDir, specifier)) {
-                        return p.replace('*', '') + path.relative(mappedDir, specifier);
+                        return convertPathSeperators(p.replace('*', '') + path.relative(mappedDir, specifier));
                     }
                 }
             }
         }
-        if (config && config.config && isInDir(path.dirname(config.path), specifier) &&
-            getExtensionConfig('path-relative-from-tsconfig', false)) {
-            return path.relative(path.dirname(config.path), specifier);
+        if (
+            config &&
+            config.config &&
+            isInDir(path.dirname(config.path), specifier) &&
+            getExtensionConfig('path-relative-from-tsconfig', false)
+        ) {
+            return convertPathSeperators(path.relative(path.dirname(config.path), specifier));
         }
     }
 
     if (!path.isAbsolute(specifier)) {
-        return specifier;
+        return convertPathSeperators(specifier);
     }
 
     let relative = path.relative(path.dirname(fromPath), specifier);
-    relative = relative.replace(/\\/g, '/');
     if (!relative.startsWith('.')) {
         relative = './' + relative;
     }
-    return relative;
+    return convertPathSeperators(relative);
 }
