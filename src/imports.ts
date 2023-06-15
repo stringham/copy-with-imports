@@ -78,62 +78,72 @@ export function getImports(src: string, filePath: string) {
             }
         }
 
-        const modifier = node.modifiers?.[0];
-        if (modifier?.kind == ts.SyntaxKind.ExportKeyword) {
-            if (ts.isClassDeclaration(node)) {
-                if (node.name) {
+        if (
+            ts.isClassDeclaration(node) ||
+            ts.isVariableStatement(node) ||
+            ts.isInterfaceDeclaration(node) ||
+            ts.isEnumDeclaration(node) ||
+            ts.isTypeAliasDeclaration(node) ||
+            ts.isModuleDeclaration(node) ||
+            ts.isFunctionDeclaration(node)
+        ) {
+            const modifier = node.modifiers?.[0];
+            if (modifier?.kind == ts.SyntaxKind.ExportKeyword) {
+                if (ts.isClassDeclaration(node)) {
+                    if (node.name) {
+                        importNames[node.name.getText()] = {
+                            path: filePath,
+                            isImport: false,
+                            end: -1,
+                            node: node,
+                        };
+                    }
+                } else if (ts.isVariableStatement(node)) {
+                    node.declarationList.declarations.forEach((declaration) => {
+                        importNames[declaration.name.getText()] = {
+                            path: filePath,
+                            isImport: false,
+                            end: -1,
+                            node: node,
+                        };
+                    });
+                } else if (ts.isInterfaceDeclaration(node)) {
                     importNames[node.name.getText()] = {
                         path: filePath,
                         isImport: false,
                         end: -1,
                         node: node,
                     };
-                }
-            } else if (ts.isVariableStatement(node)) {
-                node.declarationList.declarations.forEach((declaration) => {
-                    importNames[declaration.name.getText()] = {
-                        path: filePath,
-                        isImport: false,
-                        end: -1,
-                        node: node,
-                    };
-                });
-            } else if (ts.isInterfaceDeclaration(node)) {
-                importNames[node.name.getText()] = {
-                    path: filePath,
-                    isImport: false,
-                    end: -1,
-                    node: node,
-                };
-            } else if (ts.isEnumDeclaration(node)) {
-                importNames[node.name.getText()] = {
-                    path: filePath,
-                    isImport: false,
-                    end: -1,
-                    node: node,
-                };
-            } else if (ts.isTypeAliasDeclaration(node)) {
-                importNames[node.name.getText()] = {
-                    path: filePath,
-                    isImport: false,
-                    end: -1,
-                    node: node,
-                };
-            } else if (ts.isModuleDeclaration(node)) {
-                importNames[node.name.getText()] = {
-                    path: filePath,
-                    isImport: false,
-                    end: -1,
-                    node: node,
-                };
-            } else if (ts.isFunctionDeclaration(node)) {
-                if (node.name) {
+                } else if (ts.isEnumDeclaration(node)) {
                     importNames[node.name.getText()] = {
                         path: filePath,
                         isImport: false,
                         end: -1,
                         node: node,
                     };
+                } else if (ts.isTypeAliasDeclaration(node)) {
+                    importNames[node.name.getText()] = {
+                        path: filePath,
+                        isImport: false,
+                        end: -1,
+                        node: node,
+                    };
+                } else if (ts.isModuleDeclaration(node)) {
+                    importNames[node.name.getText()] = {
+                        path: filePath,
+                        isImport: false,
+                        end: -1,
+                        node: node,
+                    };
+                } else if (ts.isFunctionDeclaration(node)) {
+                    if (node.name) {
+                        importNames[node.name.getText()] = {
+                            path: filePath,
+                            isImport: false,
+                            end: -1,
+                            node: node,
+                        };
+                    }
                 }
             }
         }

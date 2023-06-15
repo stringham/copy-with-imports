@@ -7,7 +7,7 @@ export function getTsConfig(filePath: string) {
     let lastDir = filePath;
     while (dir != lastDir) {
         const tsConfigPaths = [dir + '/tsconfig.build.json', dir + '/tsconfig.json'];
-        const tsConfigPath = tsConfigPaths.find(p => fs.existsSync(p));
+        const tsConfigPath = tsConfigPaths.find((p) => fs.existsSync(p));
         if (tsConfigPath) {
             const config: any = ts.parseConfigFileTextToJson(tsConfigPath, fs.readFileSync(tsConfigPath).toString());
             config.path = tsConfigPath;

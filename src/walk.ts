@@ -11,4 +11,4 @@ export function walk(node: ts.Node, fn: (node: ts.Node) => any): boolean {
         }
     }
     return false;
-};
+}

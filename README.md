@@ -8,6 +8,10 @@ When copying and pasting code between files, this extension will attempt to add 
 
 ## Release Notes
 
+### 1.0.0
+
+Update extension to work with vscode version 1.79.0+
+
 ### 0.1.5
 
 Fix for projects that don't have a tsconfig.json.

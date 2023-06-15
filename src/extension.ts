@@ -22,17 +22,17 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
     let destinationFileText = editor.document.getText();
     const destinationFileImports = getImports(destinationFileText, editor.document.fileName);
 
-    const importsToAdd: {names: string[], options: ImportOptions}[] = [];
+    const importsToAdd: {names: string[]; options: ImportOptions}[] = [];
 
     let file = ts.createSourceFile(editor.document.fileName, text, ts.ScriptTarget.Latest, true);
-    const keep = new Set<string>()
-    walk(file, node => {
+    const keep = new Set<string>();
+    walk(file, (node) => {
         if (ts.isIdentifier(node)) {
             keep.add(node.getText());
         }
     });
 
-    const destinationNameSpaceImports = new Map<string, {names: string[], option: ImportOptions}>();
+    const destinationNameSpaceImports = new Map<string, {names: string[]; option: ImportOptions}>();
     for (let importName in destinationFileImports) {
         let option = destinationFileImports[importName];
         if (option.isImport && !(option.defaultImport || option.namespace) && option.moduleSpecifier) {
@@ -61,11 +61,14 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
             if (option.defaultImport || option.namespace) {
                 importsToAdd.push({names: [importName], options: srcFileImports[importName]});
             } else {
-                const name = (option.originalName ? (option.originalName + ' as ') : '') + importName
+                const name = (option.originalName ? option.originalName + ' as ' : '') + importName;
                 let found = false;
                 for (let i = 0; i < importsToAdd.length; i++) {
-                    if (importsToAdd[i].options.path == option.path && !importsToAdd[i].options.defaultImport &&
-                        !importsToAdd[i].options.namespace) {
+                    if (
+                        importsToAdd[i].options.path == option.path &&
+                        !importsToAdd[i].options.defaultImport &&
+                        !importsToAdd[i].options.namespace
+                    ) {
                         importsToAdd[i].names.push(name);
                         found = true;
                         break;
@@ -79,7 +82,7 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
     }
 
     if (importsToAdd.length > 0) {
-        let lastImport: vscode.Position|null = null;
+        let lastImport: vscode.Position | null = null;
         let lastImportPos = 0;
 
         for (let importName in destinationFileImports) {
@@ -92,15 +95,15 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
 
         let importStatements: string[] = [];
 
-        let replacements: {range: vscode.Range, value: string}[] = [];
+        let replacements: {range: vscode.Range; value: string}[] = [];
 
         let spacesBetweenBraces = getExtensionConfig('space-between-braces', false);
         let doubleQuotes = getExtensionConfig('double-quotes', false);
 
         let optSpace = spacesBetweenBraces ? ' ' : '';
-        let quote = doubleQuotes ? '"' : '\'';
+        let quote = doubleQuotes ? '"' : "'";
 
-        importsToAdd.forEach(i => {
+        importsToAdd.forEach((i) => {
             let statement = 'import ';
             let specifier = removeExtension(getRelativePath(editor.document.fileName, i.options.path));
             if (i.options.namespace) {
@@ -114,12 +117,13 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
                     const allNames = existing.names.concat(i.names);
                     let range = new vscode.Range(
                         editor.document.positionAt(existing.option.node.getStart()),
-                        editor.document.positionAt(existing.option.node.getEnd())
-                    )
+                        editor.document.positionAt(existing.option.node.getEnd()),
+                    );
                     replacements.push({
                         range: range,
-                        value:
-                            `import {${optSpace}${allNames.join(', ')}${optSpace}} from ${quote}${specifier}${quote};`,
+                        value: `import {${optSpace}${allNames.join(
+                            ', ',
+                        )}${optSpace}} from ${quote}${specifier}${quote};`,
                     });
                     return;
                 } else {
@@ -127,22 +131,27 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
                 }
             }
 
-            statement += ` from ${quote}${specifier}${quote};`
+            statement += ` from ${quote}${specifier}${quote};`;
             importStatements.push(statement);
         });
 
-        editor.edit(builder => {
-            if (importStatements.length > 0) {
-                builder.insert(
-                    new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0), importStatements.join('\n') + '\n'
-                );
-            }
-            replacements.forEach(r => {
-                builder.replace(r.range, r.value);
-            });
-        }, {undoStopBefore: true, undoStopAfter: true});
+        editor.edit(
+            (builder) => {
+                if (importStatements.length > 0) {
+                    builder.insert(
+                        new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0),
+                        importStatements.join('\n') + '\n',
+                    );
+                }
+                replacements.forEach((r) => {
+                    builder.replace(r.range, r.value);
+                });
+            },
+            {undoStopBefore: true, undoStopAfter: true},
+        );
     }
 }
+
 
 export function activate(context: vscode.ExtensionContext) {
     let lastSave = {
@@ -153,7 +162,7 @@ export function activate(context: vscode.ExtensionContext) {
     function saveLastCopy(e: vscode.TextEditor) {
         const doc = e.document;
 
-        lastSave.text = e.selections.map(selection => {
+        lastSave.text = e.selections.map((selection) => {
             let text = doc.getText(new vscode.Range(selection.start, selection.end));
             if (text.length == 0) {
                 // copying the whole line.
@@ -165,45 +174,57 @@ export function activate(context: vscode.ExtensionContext) {
         lastSave.location = doc.fileName;
     }
 
-    context.subscriptions
-        .push(vscode.commands.registerCommand('copy-with-imports.copy', () => {
+    context.subscriptions.push(
+        vscode.commands.registerCommand('copy-with-imports.copy', () => {
             vscode.commands.executeCommand('editor.action.clipboardCopyAction');
-            if(vscode.window.activeTextEditor) {
+            if (vscode.window.activeTextEditor) {
                 saveLastCopy(vscode.window.activeTextEditor);
             }
-        }));
+        }),
+    );
 
-    context.subscriptions
-        .push(vscode.commands.registerCommand('copy-with-imports.cut', () => {
-            if(vscode.window.activeTextEditor) {
+    context.subscriptions.push(
+        vscode.commands.registerCommand('copy-with-imports.cut', () => {
+            if (vscode.window.activeTextEditor) {
                 saveLastCopy(vscode.window.activeTextEditor);
             }
             vscode.commands.executeCommand('editor.action.clipboardCutAction');
-        }));
+        }),
+    );
 
-    context.subscriptions.push(vscode.commands.registerTextEditorCommand('copy-with-imports.paste', (editor, edit) => {
-        let doc = vscode.window.activeTextEditor?.document;
-        let selections = vscode.window.activeTextEditor?.selections.slice().sort((a, b) => a.start.compareTo(b.start));
+    context.subscriptions.push(
+        vscode.commands.registerTextEditorCommand('copy-with-imports.paste', async (editor, edit) => {
+            let doc = vscode.window.activeTextEditor?.document;
+            let selections = vscode.window.activeTextEditor?.selections
+                .slice()
+                .sort((a, b) => a.start.compareTo(b.start));
 
-        vscode.commands.executeCommand('editor.action.clipboardPasteAction').then(() => {
+            const waitingForSelectionChange = new Promise<void>((resolve) => {
+                const registration = vscode.window.onDidChangeTextEditorSelection((e) => {
+                    registration.dispose();
+                    resolve();
+                });
+            });
+
+            await vscode.commands.executeCommand('editor.action.clipboardPasteAction');
+            await waitingForSelectionChange;
+
             const activeEditor = vscode.window.activeTextEditor;
-            if(!doc || !selections || !activeEditor) {
+            if (!doc || !selections || !activeEditor) {
                 return;
             }
             if (lastSave.location && activeEditor.document.fileName != lastSave.location) {
                 let shouldBringImports = false;
                 if (selections.length == 1 || selections.length != lastSave.text.length) {
                     let selection = selections[0];
-                    let pasted =
-                        doc.getText(new vscode.Range(selection.start, activeEditor.selection.start));
+                    let pasted = doc.getText(new vscode.Range(selection.start, activeEditor.selection.start));
                     // replace whitespace in case of auto formatter.
                     if (pasted.replace(/\s/g, '') == lastSave.text.join('').replace(/\s/g, '')) {
                         shouldBringImports = true;
                     }
                 } else {
-                    let copied = new Set<string>(lastSave.text.map(text => text.replace(/\s/g, '')));
-                    let currentSelections =
-                        activeEditor.selections.slice().sort((a, b) => a.start.compareTo(b.start));
+                    let copied = new Set<string>(lastSave.text.map((text) => text.replace(/\s/g, '')));
+                    let currentSelections = activeEditor.selections.slice().sort((a, b) => a.start.compareTo(b.start));
                     shouldBringImports = true;
                     for (let i = 0; i < selections.length; i++) {
                         let pasted = doc.getText(new vscode.Range(selections[i].start, currentSelections[i].start));
@@ -217,10 +238,9 @@ export function activate(context: vscode.ExtensionContext) {
                     bringInImports(lastSave.location, activeEditor, lastSave.text.join('\n'), edit);
                 }
             }
-        });
-    }))
+        }),
+    );
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {
-}
+export function deactivate() {}
