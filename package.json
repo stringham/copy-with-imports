@@ -2,7 +2,7 @@
     "name": "copy-with-imports",
     "displayName": "Copy With Imports",
     "description": "Copy over symbol imports when copying and pasting between TypeScript files.",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "publisher": "stringham",
     "engines": {
         "vscode": "^1.79.0"
@@ -15,7 +15,9 @@
     "categories": [
         "Other"
     ],
-    "activationEvents": ["*"],
+    "activationEvents": [
+        "*"
+    ],
     "keywords": [
         "typescript",
         "import",
@@ -23,7 +25,7 @@
         "paste",
         "auto"
     ],
-    "main": "./out/extension.js",
+    "main": "./dist/extension.js",
     "contributes": {
         "commands": [
             {
@@ -82,11 +84,13 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
+        "vscode:prepublish": "npm run package",
+        "compile": "webpack",
+        "watch": "webpack --watch",
+        "package": "webpack --mode production --devtool hidden-source-map",
         "test-compile": "tsc -p ./",
-        "pretest": "npm run compile && npm run lint",
+        "test-watch": "tsc -watch -p ./",
+        "pretest": "npm run test-compile",
         "lint": "eslint src --ext ts",
         "test": "node ./out/test/runTest.js"
     },

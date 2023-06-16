@@ -87,8 +87,8 @@ export function getImports(src: string, filePath: string) {
             ts.isModuleDeclaration(node) ||
             ts.isFunctionDeclaration(node)
         ) {
-            const modifier = node.modifiers?.[0];
-            if (modifier?.kind == ts.SyntaxKind.ExportKeyword) {
+            const isExported = (node.modifiers ?? []).some((m) => m.kind == ts.SyntaxKind.ExportKeyword);
+            if (isExported) {
                 if (ts.isClassDeclaration(node)) {
                     if (node.name) {
                         importNames[node.name.getText()] = {
