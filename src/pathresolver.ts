@@ -3,8 +3,8 @@ import * as path from 'path';
 import {getExtensionConfig} from './config';
 import {getTsConfig} from './tsconfig';
 
-export const tsExtensions = new Set(['.ts', '.tsx']);
-export const jsExtensions = new Set(['.js', '.jsx']);
+export const tsExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.mtsx', '.ctsx']);
+export const jsExtensions = new Set(['.js', '.jsx', '.mjs', '.cjs', '.mjsx', '.cjsx']);
 
 function isPathToAnotherDir(path: string) {
     return path.startsWith('../') || path.startsWith('..\\');
