@@ -159,10 +159,15 @@ export function activate(context: vscode.ExtensionContext) {
         location: '',
     };
 
+    function sortSelectionsByStartPosition(selections: readonly vscode.Selection[]) {
+        return selections.slice().sort((a, b) => a.start.compareTo(b.start));
+    }
+
     function saveLastCopy(e: vscode.TextEditor) {
         const doc = e.document;
+        const selections = sortSelectionsByStartPosition(e.selections);
 
-        lastSave.text = e.selections.map((selection) => {
+        lastSave.text = selections.map((selection) => {
             let text = doc.getText(new vscode.Range(selection.start, selection.end));
             if (text.length == 0) {
                 // copying the whole line.
@@ -195,9 +200,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerTextEditorCommand('copy-with-imports.paste', async (editor, edit) => {
             let doc = vscode.window.activeTextEditor?.document;
-            let selections = vscode.window.activeTextEditor?.selections
-                .slice()
-                .sort((a, b) => a.start.compareTo(b.start));
+            let selections = vscode.window.activeTextEditor 
+                ? sortSelectionsByStartPosition(vscode.window.activeTextEditor.selections) 
+                : undefined;
 
             const waitingForSelectionChange = new Promise<void>((resolve) => {
                 const registration = vscode.window.onDidChangeTextEditorSelection((e) => {
@@ -224,7 +229,7 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                 } else {
                     let copied = new Set<string>(lastSave.text.map((text) => text.replace(/\s/g, '')));
-                    let currentSelections = activeEditor.selections.slice().sort((a, b) => a.start.compareTo(b.start));
+                    let currentSelections = sortSelectionsByStartPosition(activeEditor.selections);
                     shouldBringImports = true;
                     for (let i = 0; i < selections.length; i++) {
                         let pasted = doc.getText(new vscode.Range(selections[i].start, currentSelections[i].start));
