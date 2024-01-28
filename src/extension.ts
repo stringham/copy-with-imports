@@ -7,7 +7,7 @@ import {getImports, ImportOptions} from './imports';
 import {jsExtensions, tsExtensions, removeExtension, getRelativePath} from './pathresolver';
 import {getExtensionConfig} from './config';
 
-function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: string, edit: vscode.TextEditorEdit) {
+async function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: string) {
     let sourceExt = path.extname(sourceFile);
     let destExt = path.extname(editor.document.fileName);
     let bothTs = tsExtensions.has(sourceExt) && tsExtensions.has(destExt);
@@ -135,20 +135,28 @@ function bringInImports(sourceFile: string, editor: vscode.TextEditor, text: str
             importStatements.push(statement);
         });
 
-        editor.edit(
-            (builder) => {
-                if (importStatements.length > 0) {
-                    builder.insert(
-                        new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0),
-                        importStatements.join('\n') + '\n',
-                    );
-                }
-                replacements.forEach((r) => {
-                    builder.replace(r.range, r.value);
-                });
-            },
-            {undoStopBefore: true, undoStopAfter: true},
-        );
+        // Workaround for edits sometimes failing to be applied on the first run. 
+        // It happens quite consistently when the start indentations are different.
+        const MAX_RETRIES = 2;
+        for (let i = 0; i < MAX_RETRIES; i++) {
+            const editSuccessful = await editor.edit(
+                (builder) => {
+                    if (importStatements.length > 0) {
+                        builder.insert(
+                            new vscode.Position(lastImport ? lastImport.line + 1 : 0, 0),
+                            importStatements.join('\n') + '\n',
+                        );
+                    }
+                    replacements.forEach((r) => {
+                        builder.replace(r.range, r.value);
+                    });
+                },
+                {undoStopBefore: true, undoStopAfter: true},
+            );
+            if (editSuccessful) {
+                break;
+            }
+        }
     }
 }
 
@@ -198,7 +206,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerTextEditorCommand('copy-with-imports.paste', async (editor, edit) => {
+        vscode.commands.registerCommand('copy-with-imports.paste', async () => {
             let doc = vscode.window.activeTextEditor?.document;
             let selections = vscode.window.activeTextEditor 
                 ? sortSelectionsByStartPosition(vscode.window.activeTextEditor.selections) 
@@ -240,7 +248,7 @@ export function activate(context: vscode.ExtensionContext) {
                     }
                 }
                 if (shouldBringImports) {
-                    bringInImports(lastSave.location, activeEditor, lastSave.text.join('\n'), edit);
+                    await bringInImports(lastSave.location, activeEditor, lastSave.text.join('\n'));
                 }
             }
         }),
