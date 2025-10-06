@@ -14,7 +14,7 @@ suite('Extension Test Suite', () => {
         assert.strictEqual(-1, [1, 2, 3].indexOf(0));
     });
 
-    test('imports', () => {
+    test('imports', async () => {
     vscode.window.showInformationMessage('Start imports tests.');
 
         const fileContents = `import {foo} from './foo';
@@ -37,7 +37,7 @@ export type myType = 4|3|2|1;
 export function myFunction() {}
 export namespace myModule {}
 `;
-        const imports = getImports(fileContents, '/this/is/a/file.ts');
+        const imports = await getImports(fileContents, '/this/is/a/file.ts');
 
         console.log(imports, imports);
 

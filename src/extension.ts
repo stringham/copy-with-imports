@@ -16,11 +16,11 @@ async function bringInImports(sourceFile: string, editor: vscode.TextEditor, tex
         return;
     }
 
-    let srcFileText = fs.readFileSync(sourceFile, 'utf8').toString();
-    const srcFileImports = getImports(srcFileText, sourceFile);
+    let srcFileText = await fs.promises.readFile(sourceFile, 'utf8');
+    const srcFileImports = await getImports(srcFileText, sourceFile);
 
     let destinationFileText = editor.document.getText();
-    const destinationFileImports = getImports(destinationFileText, editor.document.fileName);
+    const destinationFileImports = await getImports(destinationFileText, editor.document.fileName);
 
     const importsToAdd: {names: string[]; options: ImportOptions}[] = [];
 
@@ -103,9 +103,9 @@ async function bringInImports(sourceFile: string, editor: vscode.TextEditor, tex
         let optSpace = spacesBetweenBraces ? ' ' : '';
         let quote = doubleQuotes ? '"' : "'";
 
-        importsToAdd.forEach((i) => {
+        for (const i of importsToAdd) {
             let statement = 'import ';
-            let specifier = removeExtension(getRelativePath(editor.document.fileName, i.options.path));
+            let specifier = removeExtension(await getRelativePath(editor.document.fileName, i.options.path));
             if (i.options.namespace) {
                 statement += '* as ' + i.names[0];
             } else if (i.options.defaultImport) {
@@ -125,7 +125,7 @@ async function bringInImports(sourceFile: string, editor: vscode.TextEditor, tex
                             ', ',
                         )}${optSpace}} from ${quote}${specifier}${quote};`,
                     });
-                    return;
+                    continue;
                 } else {
                     statement += `{${optSpace}${i.names.join(', ')}${optSpace}}`;
                 }
@@ -133,9 +133,9 @@ async function bringInImports(sourceFile: string, editor: vscode.TextEditor, tex
 
             statement += ` from ${quote}${specifier}${quote};`;
             importStatements.push(statement);
-        });
+        }
 
-        // Workaround for edits sometimes failing to be applied on the first run. 
+        // Workaround for edits sometimes failing to be applied on the first run.
         // It happens quite consistently when the start indentations are different.
         const MAX_RETRIES = 2;
         for (let i = 0; i < MAX_RETRIES; i++) {
@@ -208,8 +208,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('copy-with-imports.paste', async () => {
             let doc = vscode.window.activeTextEditor?.document;
-            let selections = vscode.window.activeTextEditor 
-                ? sortSelectionsByStartPosition(vscode.window.activeTextEditor.selections) 
+            let selections = vscode.window.activeTextEditor
+                ? sortSelectionsByStartPosition(vscode.window.activeTextEditor.selections)
                 : undefined;
 
             const waitingForSelectionChange = new Promise<void>((resolve) => {

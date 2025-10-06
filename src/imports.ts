@@ -15,16 +15,16 @@ export interface ImportOptions {
     originalName?: string;
 }
 
-export function getImports(src: string, filePath: string) {
+export async function getImports(src: string, filePath: string) {
     let file = ts.createSourceFile(filePath, src, ts.ScriptTarget.Latest, true);
 
     let importNames: {[key: string]: ImportOptions} = {};
-    const config = getTsConfig(filePath);
+    const config = await getTsConfig(filePath);
     for (const node of file.statements) {
         if (ts.isImportDeclaration(node)) {
             if (ts.isStringLiteral(node.moduleSpecifier)) {
                 let specifier = node.moduleSpecifier.text;
-                let resolved = resolveImport(specifier, filePath, config);
+                let resolved = await resolveImport(specifier, filePath, config);
 
                 if (node.importClause) {
                     if (node.importClause.name) {
@@ -151,7 +151,7 @@ export function getImports(src: string, filePath: string) {
     return importNames;
 }
 
-export function resolveImport(importSpecifier: string, filePath: string, config: any): string {
+export async function resolveImport(importSpecifier: string, filePath: string, config: any): Promise<string> {
     if (importSpecifier.startsWith('.')) {
         return path.resolve(path.dirname(filePath), importSpecifier) + '.ts';
     }

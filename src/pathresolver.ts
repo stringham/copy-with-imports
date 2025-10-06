@@ -31,9 +31,9 @@ function convertPathSeperators(relative: string) {
     return relative.replace(/\\/g, '/');
 }
 
-export function getRelativePath(fromPath: string, specifier: string): string {
+export async function getRelativePath(fromPath: string, specifier: string): Promise<string> {
     if (tsExtensions.has(path.extname(fromPath))) {
-        const config = getTsConfig(fromPath);
+        const config = await getTsConfig(fromPath);
         if (config && config.config && config.config.compilerOptions && config.config.compilerOptions.paths) {
             for (let p in config.config.compilerOptions.paths) {
                 if (config.config.compilerOptions.paths[p].length == 1) {
